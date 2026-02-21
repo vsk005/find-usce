@@ -1,0 +1,49 @@
+name: Update Programs Data (24h AI Cron)
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # Every 24 hours at midnight UTC
+  workflow_dispatch:       # Allow manual trigger
+
+jobs:
+  update-programs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: find-usce/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          cd find-usce
+          npm ci
+
+      - name: Run AI data enrichment script
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          cd find-usce
+          npx ts-node scripts/update-programs.ts
+
+      - name: Commit updated data
+        run: |
+          git config --global user.name "USCE AI Bot"
+          git config --global user.email "ai-bot@findusce.vercel.app"
+          git add find-usce/data/programs.json
+          if git diff --staged --quiet; then
+            echo "No changes detected in program data"
+          else
+            git commit -m "🤖 AI update: program data refreshed $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git push
+          fi
