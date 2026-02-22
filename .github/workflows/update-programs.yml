@@ -22,25 +22,23 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: find-usce/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install dependencies
-        run: |
-          cd find-usce
           npm ci
 
       - name: Run AI data enrichment script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          cd find-usce
-          npx ts-node scripts/update-programs.ts
+          npm i -g ts-node typescript
+          npx ts-node --esm scripts/update-programs.ts
 
       - name: Commit updated data
         run: |
           git config --global user.name "USCE AI Bot"
           git config --global user.email "ai-bot@findusce.vercel.app"
-          git add find-usce/data/programs.json
+          git add data/programs.json
           if git diff --staged --quiet; then
             echo "No changes detected in program data"
           else
