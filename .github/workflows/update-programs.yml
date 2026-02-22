@@ -31,8 +31,8 @@ jobs:
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: |
-          npm i -g ts-node typescript
-          npx ts-node --esm scripts/update-programs.ts
+          npm i -g tsx typescript
+          npx tsx scripts/update-programs.ts
 
       - name: Commit updated data
         run: |
